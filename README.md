@@ -1,6 +1,6 @@
 # About the Project
 
-This is a pipeline capable of transferring [NeuroNLP Medulla](https://medulla.neuronlp.fruitflybrain.org/) queries into the [NetPyNE](http://www.netpyne.org/) and [Brian2](https://brian2.readthedocs.io/en/stable/) neural simulators, used for a research project comparing the capabilities of said simulators. The package also contains support for transferring generated NetPyNE models to the [NeuroML2](https://docs.neuroml.org/Userdocs/NeuroMLv2.html) format, which in turn supports model transfer to various other neural simulators.
+This is a pipeline capable of transferring [NeuroNLP Medulla](https://medulla.neuronlp.fruitflybrain.org/) queries into the [NetPyNE](http://www.netpyne.org/) and [Brian2](https://brian2.readthedocs.io/en/stable/) neural simulators, used for a research project comparing the capabilities of said simulators for the [Bionet Group](http://www.bionet.ee.columbia.edu/) at Columbia University. The package also contains support for transferring generated NetPyNE models to the [NeuroML2](https://docs.neuroml.org/Userdocs/NeuroMLv2.html) format, which in turn supports model transfer to various other neural simulators.
 
 # Dependencies
 
