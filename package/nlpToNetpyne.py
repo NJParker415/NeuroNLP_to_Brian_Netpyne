@@ -189,6 +189,10 @@ def generate_netparams(client: fbl.Client,
                                 in swc definitions)
     '''
     
+    # Make all custom None dicts empty to prevent code from breaking
+    if custom_mechs == None: custom_mechs = {}
+    if custom_cells == None: custom_cells = {}
+    
     # Set up our network parameters object
     networkParams = netParams.NetParams()
     
@@ -284,6 +288,9 @@ def generate_netparams(client: fbl.Client,
         # Is the cell part of custom_cells?
         elif (cellname_raw in custom_cells.keys()):
             networkParams.cellParams[cellname] = custom_cells[cellname_raw]
+        
+        else:
+            networkParams.cellParams[cellname] = default_cell
         
             
         # Create a cell population of 1
