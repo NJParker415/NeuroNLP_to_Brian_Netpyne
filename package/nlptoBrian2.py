@@ -1,5 +1,6 @@
 import flybrainlab as fbl
 from brian2 import *
+from brian2tools import *
 import networkx as nx
 import numpy as np
 import os
@@ -62,29 +63,41 @@ def model_gen(client: fbl.Client,
     
     # Generate network parameters and simulation configuration settings
     networkParams = generate_model(client=client,
-                                       neurons=neurons,
-                                       synapses=synapses,
-                                       G=G,
-                                       custom_mechs=custom_mechs,
-                                       custom_cells=custom_cells,
-                                       default_mech=default_mech,
-                                       default_cell=default_cell,
-                                       stim_sources=stim_sources,
-                                       stim_targets=stim_targets,
-                                       maintain_morphology=maintain_morphology)
+                                   neurons=neurons,
+                                   synapses=synapses,
+                                   G=G,
+                                   custom_mechs=custom_mechs,
+                                   custom_cells=custom_cells,
+                                   default_mech=default_mech,
+                                   default_cell=default_cell,
+                                   stim_sources=stim_sources,
+                                   stim_targets=stim_targets,
+                                   record_names=record_names,
+                                   maintain_morphology=maintain_morphology,
+                                   **kwargs)
     
     return networkParams
 
 def simulate(networkParams,
-             t: float):
-    ''' Create and run netpyne simulation
+             t: float,
+             internal_vars: tp.Dict):
+    ''' Create and run brian2 simulation
     
-    :param networkParams: netpyne networkParams object to simulate
-    :param simConfig: netpyne SimConfig object with desired simulation configuration 
+    :param networkParams: brian2 network to simulate
+    :param t: duration of simulation, in ms
+    :param internal_vars: predefined network variables to insert into simulation
     '''
     
     # Simulate and run
-    networkParams.run(t*ms)
+    #networkParams.before_run(internal_vars)
+    networkParams.run(t*ms, namespace=internal_vars)
+    
+    # Grab monitoring objects. There is definitely a better way to do this
+    for o in networkParams.objects:
+        if (isinstance(o, monitors.statemonitor.StateMonitor)):
+            brian_plot(o)
+            plt.show()
+            plt.savefig(
 
     
 def generate_model(client: fbl.Client,
@@ -93,14 +106,30 @@ def generate_model(client: fbl.Client,
                    G: nx.graph,
                    custom_mechs: tp.Dict[str, tp.Dict]=None,
                    custom_cells: tp.Dict[str, tp.Dict]=None,
-                       default_mech: tp.Dict=None,
-                       default_cell: tp.Dict[str, tp.Dict]=None,
-                       stim_sources: tp.Dict[str, tp.Dict]=None,
-                       stim_targets: tp.Dict[str, str]=None,
-                       maintain_morphology: bool=False):
+                   default_mech: tp.Dict=None,
+                   default_cell: tp.Dict[str, tp.Dict]=None,
+                   stim_sources: tp.Dict[str, tp.Dict]=None,
+                   stim_targets: tp.Dict[str, str]=None,
+                   record_names: tp.List[str]=None,
+                   maintain_morphology: bool=False,
+                   **kwargs):
     ''' Generate a brian2 network from neurons and synapses.
     
     .. note::
+    
+        A lot of this is really ugly. Because Brian2 works entirely off of magic functions,
+        spinning up a network on the fly gets really messy really fast since it wasn't built
+        with doing so in mind. I've done my best to mitigate it, but we still end up with a
+        bunch of floating variables we have to pullfrom locals() and hardcoded values to get
+        everything to fit together.
+        
+        Should Brian2 be chosen as the simulator of choice moving forward, I highly recommend
+        getting someone more knowledgeable about wrangling magic functions to clean this up.
+        
+        Neuron eqns need to have a v for voltage, If synapses have a weight they should be represented
+        by w. Again, since everything in brian2 works off of magic functions, some things just have to
+        be hardcoded in like this atm. I am not knowledgable enough to figure out how to get around
+        this.
     
     :param client: pointer to FBL client
     :param neurons: dictionary representing neurons
@@ -118,6 +147,7 @@ def generate_model(client: fbl.Client,
                          It is assumed that custom mechanisms are defined in custom_mechs.
     :param stim_targets: dictionary of stimulation names, and their accompanying stimulation targets.
                          It is assumed that any custom stimulation sources are defined in stim_sources.
+    :param record_names: list of neurons to record traces of
     :param maintain_morphology: whether or not model morphology should be maintained in the
                                 simulation (not recommended if neuron sections are unidentified
                                 in swc definitions)
@@ -162,8 +192,16 @@ def generate_model(client: fbl.Client,
         
         # Create a cell population of 1
         locals()[cellname] = NeuronGroup(1, **eqs)
+        locals()[cellname].v = 0 * mV
         
         networkParams.add(locals()[cellname])
+        
+        # We can't define recordings outside of network setup b/c of how Brian2 is structured,
+        # so we do it here
+        if (record_names != None):
+            if cellname_raw in record_names:
+                locals()[cellname + "_record"] = StateMonitor(locals()[cellname], ('v'), record=True)
+                networkParams.add(locals()[cellname + "_record"])
     
     # Turn synapses into synapse groups                                         
     for rid in rid_to_uname_morph.keys():
@@ -201,6 +239,8 @@ def generate_model(client: fbl.Client,
                     locals()[con_uname] = Synapses(locals()[pre], locals()[post], **default_mech)
                     
                 locals()[con_uname].connect()
+                locals()[con_uname].add_attribute('w')
+                locals()[con_uname].w = 1
                     
                 networkParams.add(locals()[con_uname])
                 
