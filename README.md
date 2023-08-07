@@ -27,4 +27,4 @@ Instructions for defining custom components can be found in the comments of ```n
 
 # Testing
 
-```package_testing.ipnyb``` is a jupyter notebook that, when run in a flybrainlab Medulla client, queries increasing numbers of motor columns and measures each simulators performance in terms of runtime and computational load. By default, all cells are defined as Hodgkin-Huxley neurons and all synapses are defined by simple excitatory mechanisms. Individual cells and synapses can be custom-defined, though that functionality is not used here.
+```run_simulations.ipnyb``` is a jupyter notebook that, when run in a flybrainlab Medulla client, queries increasing numbers of motor columns and measures each simulators performance in terms of runtime and computational load. By default, all cells are defined as Hodgkin-Huxley neurons and all synapses are defined by simple excitatory mechanisms. Individual cells and synapses can be custom-defined, though that functionality is not used here.
