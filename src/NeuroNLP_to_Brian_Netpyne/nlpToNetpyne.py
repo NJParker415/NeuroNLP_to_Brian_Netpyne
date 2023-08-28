@@ -13,7 +13,7 @@ def model_gen(client: fbl.Client,
               res: fbl.graph.NAqueryResult,
               filename: str,
               custom_mechs: tp.Dict[str, tp.Dict]=None,
-              custom_cells: tp.Dict[tp.List[str], tp.Dict]=None,
+              custom_cells: tp.Dict[str, tp.Dict]=None,
               default_mech: tp.Dict=None,
               default_cell: tp.Dict=None,
               stim_sources: tp.Dict[str, tp.Dict]=None,
@@ -329,7 +329,7 @@ def generate_netparams(client: fbl.Client,
                                                                         #'probability': 1,
                                                                        'weight': 0.1,
                                                                        'delay': 5,
-                                                                       'synMech': custom_mechs[con_uname_raw]})
+                                                                       'synMech': con_uname_raw})
                     else:
                         networkParams.addConnParams(con['syn_uname'], {'preConds': {'cellType': pre},
                                                                        'postConds': {'cellType': post},

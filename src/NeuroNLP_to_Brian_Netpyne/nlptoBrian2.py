@@ -97,8 +97,6 @@ def simulate(networkParams,
         if (isinstance(o, monitors.statemonitor.StateMonitor)):
             brian_plot(o)
             plt.show()
-            plt.savefig(
-
     
 def generate_model(client: fbl.Client,
                    neurons: tp.Dict,
